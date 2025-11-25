@@ -112,6 +112,13 @@ class ShowHabitActivity : AppCompatActivity(), CommandRunner.Listener {
         view.setListener(presenter)
         view.applyRootViewInsets()
         setContentView(view)
+        
+        // Setup toolbar with back button
+        setSupportActionBar(view.binding.toolbar)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        view.binding.toolbar.setNavigationOnClickListener {
+            finish()
+        }
     }
 
     override fun onCreateOptionsMenu(m: Menu): Boolean {

@@ -30,7 +30,7 @@ import org.isoron.uhabits.utils.applyToolbarInsets
 import org.isoron.uhabits.utils.setupToolbar
 
 class ShowHabitView(context: Context) : FrameLayout(context) {
-    private val binding = ShowHabitBinding.inflate(LayoutInflater.from(context))
+    internal val binding = ShowHabitBinding.inflate(LayoutInflater.from(context))
 
     init {
         binding.toolbar.applyToolbarInsets()

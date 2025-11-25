@@ -47,7 +47,8 @@ class HistoryChart(
     var theme: Theme,
     var today: LocalDate,
     var onDateClickedListener: OnDateClickedListener = object : OnDateClickedListener {},
-    var padding: Double = 0.0
+    var padding: Double = 0.0,
+    var intensities: List<Double>? = null
 ) : DataView {
 
     enum class Square {
@@ -206,28 +207,39 @@ class HistoryChart(
     ) {
         val value = if (offset >= series.size) defaultSquare else series[offset]
         val hasNotes = if (offset >= notesIndicators.size) false else notesIndicators[offset]
+        val intensity = if (intensities != null && offset < intensities!!.size) intensities!![offset] else null
+        
         val squareColor: Color
         val circleColor: Color
         val color = theme.color(paletteColor.paletteIndex)
-        squareColor = when (value) {
-            Square.ON -> {
-                color
-            }
-            Square.OFF -> {
-                theme.lowContrastTextColor
-            }
-            Square.GREY -> {
-                theme.mediumContrastTextColor
-            }
-            Square.DIMMED, Square.HATCHED -> {
-                color.blendWith(theme.cardBackgroundColor, 0.5)
+        
+        squareColor = if (intensity != null) {
+             if (intensity > 0) {
+                 color.blendWith(theme.cardBackgroundColor, 1.0 - intensity)
+             } else {
+                 theme.lowContrastTextColor
+             }
+        } else {
+            when (value) {
+                Square.ON -> {
+                    color
+                }
+                Square.OFF -> {
+                    theme.lowContrastTextColor
+                }
+                Square.GREY -> {
+                    theme.mediumContrastTextColor
+                }
+                Square.DIMMED, Square.HATCHED -> {
+                    color.blendWith(theme.cardBackgroundColor, 0.5)
+                }
             }
         }
 
         canvas.setColor(squareColor)
         canvas.fillRoundRect(x, y, width, height, width * 0.15)
 
-        if (value == Square.HATCHED) {
+        if (value == Square.HATCHED && intensity == null) {
             canvas.setStrokeWidth(0.75)
             canvas.setColor(theme.cardBackgroundColor)
             var k = width / 10

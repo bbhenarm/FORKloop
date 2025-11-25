@@ -76,24 +76,41 @@ class ListHabitsRootView @Inject constructor(
     val progressBar = TaskProgressBar(context, runner)
     val hintView: HintView
     val header = HeaderView(context, preferences, midnightTimer)
+    val historyCardView = org.isoron.uhabits.activities.habits.show.views.HistoryCardView(context, null).apply {
+        visibility = android.view.View.VISIBLE
+    }
 
     init {
         val hints = resources.getStringArray(R.array.hints)
         val hintList = hintListFactory.create(hints)
         hintView = HintView(context, hintList)
 
-        val rootView = RelativeLayout(context).apply {
+        val rootView = android.widget.LinearLayout(context).apply {
+            orientation = android.widget.LinearLayout.VERTICAL
             background = sres.getDrawable(R.attr.windowBackgroundColor)
-            addAtTop(konfettiView)
-            addAtTop(tbar)
-            addBelow(header, tbar)
-            addBelow(listView, header, height = MATCH_PARENT)
-            addBelow(llEmpty, header, height = MATCH_PARENT)
-            addBelow(progressBar, header) {
-                it.topMargin = dp(-6.0f).toInt()
-            }
-            addAtBottom(hintView)
+            
+            // Container for toolbar and progress bar
+            val topContainer = android.widget.FrameLayout(context)
+            topContainer.addView(tbar)
+            topContainer.addView(progressBar, FrameLayout.LayoutParams(MATCH_PARENT, -2).apply {
+                 gravity = android.view.Gravity.BOTTOM
+                 bottomMargin = dp(-6.0f).toInt()
+            })
+            addView(topContainer)
+
+            // History Grid (Top Panel)
+            historyCardView.setPadding(dp(16f).toInt(), 0, dp(16f).toInt(), 0)
+            addView(historyCardView, android.widget.LinearLayout.LayoutParams(MATCH_PARENT, dp(200f).toInt()))
+
+            // Habit List (Bottom Panel)
+            val listContainer = android.widget.FrameLayout(context)
+            listContainer.addView(listView, MATCH_PARENT, MATCH_PARENT)
+            listContainer.addView(llEmpty, MATCH_PARENT, MATCH_PARENT)
+            // HintView removed to disable tutorial
+            
+            addView(listContainer, android.widget.LinearLayout.LayoutParams(MATCH_PARENT, 0, 1f))
         }
+        
         rootView.setupToolbar(
             toolbar = tbar,
             title = resources.getString(R.string.main_activity_title),
@@ -101,7 +118,11 @@ class ListHabitsRootView @Inject constructor(
             displayHomeAsUpEnabled = false,
             theme = currentTheme()
         )
+        
+        // Konfetti needs to be on top of everything, so we add it to the main FrameLayout (this class)
         addView(rootView, MATCH_PARENT, MATCH_PARENT)
+        addView(konfettiView, MATCH_PARENT, MATCH_PARENT)
+        
         listAdapter.setListView(listView)
     }
 

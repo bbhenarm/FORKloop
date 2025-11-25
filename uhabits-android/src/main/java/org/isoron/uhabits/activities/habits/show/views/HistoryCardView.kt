@@ -30,13 +30,14 @@ import org.isoron.uhabits.core.ui.views.HistoryChart
 import org.isoron.uhabits.databinding.ShowHabitHistoryBinding
 import java.util.Locale
 
-class HistoryCardView(context: Context, attrs: AttributeSet) : LinearLayout(context, attrs) {
+class HistoryCardView(context: Context, attrs: AttributeSet?) : LinearLayout(context, attrs) {
 
     private var binding = ShowHabitHistoryBinding.inflate(LayoutInflater.from(context), this)
 
     fun setState(state: HistoryCardState) {
         val androidColor = state.theme.color(state.color).toInt()
-        binding.title.setTextColor(androidColor)
+        binding.title.visibility = android.view.View.GONE
+        binding.edit.visibility = android.view.View.GONE
         binding.chart.view = HistoryChart(
             today = state.today,
             paletteColor = state.color,
@@ -45,7 +46,8 @@ class HistoryCardView(context: Context, attrs: AttributeSet) : LinearLayout(cont
             series = state.series,
             defaultSquare = state.defaultSquare,
             notesIndicators = state.notesIndicators,
-            firstWeekday = state.firstWeekday
+            firstWeekday = state.firstWeekday,
+            intensities = state.intensities
         )
         binding.chart.postInvalidate()
     }

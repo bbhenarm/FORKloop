@@ -46,6 +46,7 @@ import org.isoron.uhabits.core.commands.DeleteHabitsCommand
 import org.isoron.uhabits.core.commands.EditHabitCommand
 import org.isoron.uhabits.core.commands.UnarchiveHabitsCommand
 import org.isoron.uhabits.core.models.Habit
+import org.isoron.uhabits.core.models.HabitList
 import org.isoron.uhabits.core.models.PaletteColor
 import org.isoron.uhabits.core.preferences.Preferences
 import org.isoron.uhabits.core.tasks.TaskRunner
@@ -102,7 +103,8 @@ class ListHabitsScreen
     private val colorPickerFactory: ColorPickerDialogFactory,
     private val behavior: Lazy<ListHabitsBehavior>,
     private val preferences: Preferences,
-    private val rootView: Lazy<ListHabitsRootView>
+    private val rootView: Lazy<ListHabitsRootView>,
+    private val habitList: HabitList
 ) : CommandRunner.Listener,
     ListHabitsBehavior.Screen,
     ListHabitsMenuBehavior.Screen,
@@ -112,6 +114,55 @@ class ListHabitsScreen
 
     fun onAttached() {
         commandRunner.addListener(this)
+        updateGlobalHistory()
+    }
+
+    private fun updateGlobalHistory() {
+        val today = org.isoron.uhabits.core.utils.DateUtils.getTodayWithOffset()
+        val daysToShow = 105 // 15 weeks * 7 days
+        val intensities = ArrayList<Double>()
+        val series = ArrayList<org.isoron.uhabits.core.ui.views.HistoryChart.Square>()
+        
+        // Calculate global progress for the last X days
+        // HistoryChart expects the first element to be the NEWEST (today)
+        for (i in 0 until daysToShow) {
+            val timestamp = today.minus(i)
+            
+            var totalActive = 0
+            var completed = 0
+            
+            for (habit in habitList) {
+                if (habit.isArchived) continue
+                // Check if habit existed on this date (simplified: assume yes if not archived, or check creation date if available)
+                // For now, we count all non-archived habits.
+                
+                totalActive++
+                
+                val entry = habit.computedEntries.get(timestamp)
+                if (entry.value == org.isoron.uhabits.core.models.Entry.YES_MANUAL || 
+                    entry.value == org.isoron.uhabits.core.models.Entry.YES_AUTO ||
+                    (habit.isNumerical && entry.value > 0)) {
+                    completed++
+                }
+            }
+            
+            val intensity = if (totalActive > 0) completed.toDouble() / totalActive else 0.0
+            intensities.add(intensity)
+            series.add(org.isoron.uhabits.core.ui.views.HistoryChart.Square.ON)
+        }
+        
+        val state = org.isoron.uhabits.core.ui.screens.habits.show.views.HistoryCardState(
+            color = PaletteColor(17), // Use a default color
+            firstWeekday = preferences.firstWeekday,
+            today = today.toLocalDate(),
+            theme = themeSwitcher.currentTheme!!,
+            series = series,
+            defaultSquare = org.isoron.uhabits.core.ui.views.HistoryChart.Square.OFF,
+            notesIndicators = List(daysToShow) { false },
+            intensities = intensities
+        )
+        
+        rootView.get().historyCardView.setState(state)
     }
 
     fun onDetached() {
@@ -121,6 +172,7 @@ class ListHabitsScreen
     override fun onCommandFinished(command: Command) {
         val msg = getExecuteString(command)
         if (msg != null) activity.showMessage(msg)
+        updateGlobalHistory()
     }
 
     fun onResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -348,6 +400,7 @@ class ListHabitsScreen
                 when (result) {
                     ImportDataTask.SUCCESS -> {
                         adapter.refresh()
+                        updateGlobalHistory()
                         activity.showMessage(activity.resources.getString(R.string.habits_imported))
                     }
 
