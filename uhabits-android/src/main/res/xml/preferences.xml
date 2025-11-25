@@ -88,6 +88,11 @@
                 android:title="@string/first_day_of_the_week"
                 app:iconSpaceReserved="false" />
 
+        <Preference
+                android:key="heatmapColor"
+                android:title="Heatmap Color"
+                app:iconSpaceReserved="false" />
+
     </PreferenceCategory>
 
     <PreferenceCategory

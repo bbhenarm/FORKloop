@@ -71,6 +71,7 @@ class HistoryChart(
     private var lastPrintedMonth = ""
     private var lastPrintedYear = ""
     private var headerOverflow = 0.0
+    private var xOffset = 0.0
 
     override val dataColumnWidth: Double
         get() = squareSpacing + squareSize
@@ -85,10 +86,11 @@ class HistoryChart(
 
     private fun onDateClicked(x: Double, y: Double, isLongClick: Boolean) {
         if (width <= 0.0) throw IllegalStateException("onClick must be called after draw(canvas)")
-        val col = ((x - padding) / squareSize).toInt()
+        
+        val col = ((x - xOffset) / squareSize).toInt()
         val row = ((y - padding) / squareSize).toInt()
         val offset = col * 7 + (row - 1)
-        if (x - padding < 0 || row == 0 || row > 7 || col == nColumns) return
+        if (x - xOffset < 0 || row == 0 || row > 7 || col == nColumns) return
         val clickedDate = topLeftDate.plus(offset)
         if (clickedDate.isNewerThan(today)) return
         if (isLongClick) {
@@ -113,6 +115,9 @@ class HistoryChart(
         }.maxOrNull() ?: 0.0
 
         nColumns = floor((width - 2 * padding - weekdayColumnWidth) / squareSize).toInt()
+        val contentWidth = nColumns * squareSize + weekdayColumnWidth
+        xOffset = padding + (width - 2 * padding - contentWidth) / 2
+
         val firstWeekdayOffset = (
             today.dayOfWeek.daysSinceSunday -
                 firstWeekday.daysSinceSunday + 7
@@ -128,7 +133,7 @@ class HistoryChart(
         repeat(nColumns) { column ->
             val topOffset = topLeftOffset - 7 * column
             val topDate = topLeftDate.plus(7 * column)
-            drawColumn(canvas, column, topDate, topOffset)
+            drawColumn(canvas, column, topDate, topOffset, xOffset)
         }
 
         // Draw week day names
@@ -138,7 +143,7 @@ class HistoryChart(
             canvas.setTextAlign(TextAlign.LEFT)
             canvas.drawText(
                 dateFormatter.shortWeekdayName(date),
-                padding + nColumns * squareSize + squareSize * 0.15,
+                xOffset + nColumns * squareSize + squareSize * 0.15,
                 padding + squareSize * (row + 1) + squareSize / 2
             )
         }
@@ -148,16 +153,17 @@ class HistoryChart(
         canvas: Canvas,
         column: Int,
         topDate: LocalDate,
-        topOffset: Int
+        topOffset: Int,
+        xOffset: Double
     ) {
-        drawHeader(canvas, column, topDate)
+        drawHeader(canvas, column, topDate, xOffset)
         repeat(7) { row ->
             val offset = topOffset - row
             val date = topDate.plus(row)
             if (offset < 0) return
             drawSquare(
                 canvas,
-                padding + column * squareSize,
+                xOffset + column * squareSize,
                 padding + (row + 1) * squareSize,
                 squareSize - squareSpacing,
                 squareSize - squareSpacing,
@@ -167,7 +173,7 @@ class HistoryChart(
         }
     }
 
-    private fun drawHeader(canvas: Canvas, column: Int, date: LocalDate) {
+    private fun drawHeader(canvas: Canvas, column: Int, date: LocalDate, xOffset: Double) {
         canvas.setColor(theme.mediumContrastTextColor)
         val monthText = dateFormatter.shortMonthName(date)
         val yearText = date.year.toString()
@@ -188,7 +194,7 @@ class HistoryChart(
         canvas.setTextAlign(TextAlign.LEFT)
         canvas.drawText(
             headerText,
-            headerOverflow + padding + column * squareSize,
+            headerOverflow + xOffset + column * squareSize,
             padding + squareSize / 2
         )
 

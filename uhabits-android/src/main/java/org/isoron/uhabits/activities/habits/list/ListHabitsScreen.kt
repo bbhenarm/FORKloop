@@ -152,7 +152,7 @@ class ListHabitsScreen
         }
         
         val state = org.isoron.uhabits.core.ui.screens.habits.show.views.HistoryCardState(
-            color = PaletteColor(17), // Use a default color
+            color = PaletteColor(preferences.heatmapColor),
             firstWeekday = preferences.firstWeekday,
             today = today.toLocalDate(),
             theme = themeSwitcher.currentTheme!!,

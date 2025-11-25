@@ -43,6 +43,12 @@ open class Preferences(private val storage: Storage) {
         )
     }
 
+    var heatmapColor: Int
+        get() = storage.getInt("pref_heatmap_color", 17)
+        set(color) {
+            storage.putInt("pref_heatmap_color", color)
+        }
+
     var defaultPrimaryOrder: HabitList.Order
         get() {
             val name = storage.getString("pref_default_order", "BY_POSITION")

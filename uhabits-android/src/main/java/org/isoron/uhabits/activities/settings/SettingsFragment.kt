@@ -150,6 +150,10 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
                 startActivityForResult(intent, PUBLIC_BACKUP_REQUEST_CODE)
                 return true
             }
+            "heatmapColor" -> {
+                showHeatmapColorPicker()
+                return true
+            }
         }
         return super.onPreferenceTreeClick(preference)
     }
@@ -239,6 +243,17 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
         val uri = Uri.parse(uriString)
         val path = fullPathFor(uri)
         pref.summary = path ?: uriString
+    }
+
+    private fun showHeatmapColorPicker() {
+        val factory = org.isoron.uhabits.activities.common.dialogs.ColorPickerDialogFactory(requireContext())
+        val currentColor = org.isoron.uhabits.core.models.PaletteColor(prefs.heatmapColor)
+        val themeSwitcher = org.isoron.uhabits.activities.AndroidThemeSwitcher(requireContext(), prefs)
+        val picker = factory.create(currentColor, themeSwitcher.currentTheme!!)
+        picker.setListener { color ->
+            prefs.heatmapColor = color.paletteIndex
+        }
+        picker.show(parentFragmentManager, "heatmapColorPicker")
     }
 
     private fun fullPathFor(uri: Uri): String? {

@@ -32,7 +32,7 @@
     <org.isoron.platform.gui.AndroidDataView
         android:id="@+id/chart"
         android:layout_width="match_parent"
-        android:layout_height="160dp"/>
+        android:layout_height="192dp"/>
 
     <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/edit"
