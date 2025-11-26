@@ -133,8 +133,13 @@ class ListHabitsScreen
             
             for (habit in habitList) {
                 if (habit.isArchived) continue
-                // Check if habit existed on this date (simplified: assume yes if not archived, or check creation date if available)
-                // For now, we count all non-archived habits.
+                
+                // Determine effective start date (earliest entry or today)
+                val earliestEntry = habit.originalEntries.getKnown().lastOrNull()
+                val startDate = earliestEntry?.timestamp ?: today
+                
+                // Only count habit if the current timestamp is on or after the start date
+                if (timestamp < startDate) continue
                 
                 totalActive++
                 

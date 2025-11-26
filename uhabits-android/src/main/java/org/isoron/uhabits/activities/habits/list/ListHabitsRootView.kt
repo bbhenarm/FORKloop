@@ -103,10 +103,16 @@ class ListHabitsRootView @Inject constructor(
             addView(historyCardView, android.widget.LinearLayout.LayoutParams(MATCH_PARENT, dp(200f).toInt()))
 
             // Habit List (Bottom Panel)
-            val listContainer = android.widget.FrameLayout(context)
-            listContainer.addView(listView, MATCH_PARENT, MATCH_PARENT)
-            listContainer.addView(llEmpty, MATCH_PARENT, MATCH_PARENT)
-            // HintView removed to disable tutorial
+            val listContainer = android.widget.LinearLayout(context).apply {
+                orientation = android.widget.LinearLayout.VERTICAL
+            }
+            listContainer.addView(header)
+            
+            val listFrame = android.widget.FrameLayout(context)
+            listFrame.addView(listView, MATCH_PARENT, MATCH_PARENT)
+            listFrame.addView(llEmpty, MATCH_PARENT, MATCH_PARENT)
+            
+            listContainer.addView(listFrame, android.widget.LinearLayout.LayoutParams(MATCH_PARENT, 0, 1f))
             
             addView(listContainer, android.widget.LinearLayout.LayoutParams(MATCH_PARENT, 0, 1f))
         }
